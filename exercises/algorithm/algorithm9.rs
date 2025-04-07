@@ -1,8 +1,7 @@
 /*
-	heap
-	This question requires you to implement a binary heap function
+    heap
+    This question requires you to implement a binary heap function
 */
-// I AM NOT DONE
 
 use std::cmp::Ord;
 use std::default::Default;
@@ -36,8 +35,22 @@ where
         self.len() == 0
     }
 
-    pub fn add(&mut self, value: T) {
+    pub fn add(&mut self, value: T)
+    where
+        T: Copy,
+    {
         //TODO
+        self.items.push(value);
+        self.count += 1;
+        let mut idx = self.count;
+        let mut parent = self.parent_idx(idx);
+        while (self.comparator)(&self.items[idx], &self.items[parent]) && idx != 1 {
+            let tmp = self.items[idx];
+            self.items[idx] = self.items[parent];
+            self.items[parent] = tmp;
+            idx = parent;
+            parent = self.parent_idx(idx);
+        }
     }
 
     fn parent_idx(&self, idx: usize) -> usize {
@@ -56,9 +69,39 @@ where
         self.left_child_idx(idx) + 1
     }
 
-    fn smallest_child_idx(&self, idx: usize) -> usize {
+    fn smallest_child_idx(&self, idx: usize) -> usize
+    where
+        T: std::cmp::PartialOrd,
+    {
         //TODO
-		0
+        let left = self.left_child_idx(idx);
+        let right = self.right_child_idx(idx);
+        let (res, child_idx) = match (self.children_present(left), self.children_present(right)) {
+            (true, true) => {
+                let left_idx = self.smallest_child_idx(left);
+                let right_idx = self.smallest_child_idx(right);
+                if self.items[left_idx] <= self.items[right_idx] {
+                    (&self.items[left_idx], left_idx)
+                } else {
+                    (&self.items[right_idx], right_idx)
+                }
+            }
+            (true, false) => {
+                let child_idx = self.smallest_child_idx(left);
+                (&self.items[child_idx], child_idx)
+            }
+            (false, true) => {
+                let child_idx = self.smallest_child_idx(right);
+                (&self.items[child_idx], child_idx)
+            }
+            (false, false) => (&self.items[idx], idx),
+        };
+        let val = &self.items[idx];
+        if *val < *res {
+            idx
+        } else {
+            child_idx
+        }
     }
 }
 
@@ -85,7 +128,12 @@ where
 
     fn next(&mut self) -> Option<T> {
         //TODO
-		None
+        if self.count > 0 {
+            self.count -= 1;
+            Some(self.items.remove(1))
+        } else {
+            None
+        }
     }
 }
 
